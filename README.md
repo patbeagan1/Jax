@@ -1,2 +1,2 @@
 # Jax
-Terminal assistant
+Java source visualizer and editor
