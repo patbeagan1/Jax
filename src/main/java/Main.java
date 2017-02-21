@@ -1,7 +1,9 @@
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
+import com.thoughtworks.qdox.model.JavaMethod;
 import org.apache.commons.lang3.StringEscapeUtils;
+import sun.plugin2.message.StartAppletAckMessage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,63 +30,115 @@ public class Main {
     private void start() throws FileNotFoundException {
         JavaProjectBuilder javaProjectBuilder = new JavaProjectBuilder();
         javaProjectBuilder.addSourceTree(new File("src"));
-        printStartArray();
+        StringBuilder s = new StringBuilder();
+        s.append(START_ARRAY);
         for (JavaClass javaClass : javaProjectBuilder.getClasses()) {
-            printStartObject();
-            printFields(javaClass);
-            printMethods(javaClass);
-            printEndObject();
+            s.append(START_OBJECT);
+            getFields(javaClass, s);
+            s.append(COMMA);
+            getMethods(javaClass, s);
+            s.append(END_OBJECT);
         }
-        printEndArray();
+        s.append(END_ARRAY);
+        System.out.print(s.toString());
     }
 
-    private void printMethods(JavaClass javaClass) {
-
-    }
-
-    private void printFields(JavaClass javaClass) {
-        System.out.print(quote("vars") + ":");
-        printStartArray();
-        Iterator<JavaField> iter = javaClass.getFields().iterator();
-        while (iter.hasNext()) {
-            JavaField javaField = iter.next();
-            printStartObject();
-            System.out.print(quote("name") + ":" + quote(javaField.getName()) + COMMA);
-            System.out.print(quote("type") + ":" + quote(javaField.getType().getName()) + COMMA);
-            System.out.print(quote("modifiers") + ":");
-            printStartArray();
-            Iterator<String> iterString = javaField.getModifiers().iterator();
-            while (iterString.hasNext()) {
-                String s = iterString.next();
-                System.out.print(quote(s));
-                if (iterString.hasNext()) System.out.print(COMMA);
+    private void getMethods(JavaClass javaClass, StringBuilder s) {
+        s.append(quote("methods"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaMethod> javaMethodIterator = javaClass.getMethods().iterator();
+        if (javaMethodIterator.hasNext()) {
+            getMethod(javaMethodIterator.next(), s);
+            while (javaMethodIterator.hasNext()) {
+                s.append(COMMA);
+                getMethod(javaMethodIterator.next(), s);
             }
-            printEndArray();
-            if (iter.hasNext()) System.out.print(COMMA);
-            System.out.print(quote("value") + ":" + javaField.getInitializationExpression());
-            printEndObject();
-            System.out.print(COMMA);
         }
-        printEndArray();
+        s.append(END_ARRAY);
+    }
+
+
+    private void getMethod(JavaMethod javaMethod, StringBuilder s) {
+        s.append(START_OBJECT)
+                .append(quote("name"))
+                .append(":")
+                .append(quote(javaMethod.getName()))
+                .append(COMMA)
+                .append(quote("type"))
+                .append(":")
+                .append(quote(javaMethod.getReturnType().getCanonicalName()))
+                .append(COMMA)
+                .append(quote("modifiers"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<String> stringIterator = javaMethod.getModifiers().iterator();
+        if (stringIterator.hasNext()) {
+            s.append(quote(stringIterator.next()));
+            while (stringIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(stringIterator.next()));
+            }
+        }
+        s.append(END_ARRAY)
+                .append(COMMA)
+                .append(quote("source"))
+                .append(":")
+                .append(quote(javaMethod.getSourceCode()))
+                .append(END_OBJECT);
+    }
+
+    private void getFields(JavaClass javaClass, StringBuilder s) {
+        s.append(quote("vars"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaField> javaFieldIterator = javaClass.getFields().iterator();
+        if (javaFieldIterator.hasNext()) {
+            getField(javaFieldIterator.next(), s);
+            while (javaFieldIterator.hasNext()) {
+                s.append(COMMA);
+                getField(javaFieldIterator.next(), s);
+            }
+        }
+        s.append(END_ARRAY);
+    }
+
+
+    private void getField(JavaField javaField, StringBuilder s) {
+        s.append(START_OBJECT)
+                .append(quote("name"))
+                .append(":")
+                .append(quote(javaField.getName()))
+                .append(COMMA)
+                .append(quote("type"))
+                .append(":")
+                .append(quote(javaField.getType().getName()))
+                .append(COMMA)
+                .append(quote("modifiers"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<String> stringIterator = javaField.getModifiers().iterator();
+        if (stringIterator.hasNext()) {
+            s.append(quote(stringIterator.next()));
+            while (stringIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(stringIterator.next()));
+            }
+        }
+        s.append(END_ARRAY)
+                .append(COMMA)
+                .append(quote("value"))
+                .append(":")
+                .append(javaField.getInitializationExpression())
+                .append(END_OBJECT);
     }
 
     private String quote(String s) {
-        return "\"" + s + "\"";
+        return "\"" + StringEscapeUtils.escapeJson(s) + "\"";
     }
 
-    private void printStartObject() {
-        System.out.print("{");
-    }
-
-    private void printStartArray() {
-        System.out.print("[");
-    }
-
-    private void printEndArray() {
-        System.out.print("]");
-    }
-
-    private void printEndObject() {
-        System.out.print("}");
-    }
+    private String END_OBJECT = "}";
+    private String START_OBJECT = "{";
+    private String END_ARRAY = "]";
+    private String START_ARRAY = "[";
 }
