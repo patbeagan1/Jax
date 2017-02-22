@@ -2,6 +2,7 @@ import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.JavaSource;
 import org.apache.commons.lang3.StringEscapeUtils;
 import sun.plugin2.message.StartAppletAckMessage;
 
@@ -32,15 +33,33 @@ public class Main {
         javaProjectBuilder.addSourceTree(new File("src"));
         StringBuilder s = new StringBuilder();
         s.append(START_ARRAY);
-        for (JavaClass javaClass : javaProjectBuilder.getClasses()) {
+        for (JavaSource javaSource : javaProjectBuilder.getSources()) {
             s.append(START_OBJECT);
+            getImports(javaSource, s);
+            s.append(COMMA);
+            getClasses(javaSource, s);
+            s.append(END_OBJECT);
+        }
+        s.append(END_ARRAY);
+        System.out.print(s.toString());
+    }
+
+    private void getClasses(JavaSource javaSource, StringBuilder s) {
+        s.append(quote("classes"))
+                .append(":")
+                .append(START_ARRAY);
+        for (JavaClass javaClass : javaSource.getClasses()) {
+            s.append(START_OBJECT);
+            s.append(quote("name"))
+                    .append(":")
+                    .append(quote(javaClass.getName()));
+            s.append(COMMA);
             getFields(javaClass, s);
             s.append(COMMA);
             getMethods(javaClass, s);
             s.append(END_OBJECT);
         }
         s.append(END_ARRAY);
-        System.out.print(s.toString());
     }
 
     private void getMethods(JavaClass javaClass, StringBuilder s) {
@@ -53,6 +72,21 @@ public class Main {
             while (javaMethodIterator.hasNext()) {
                 s.append(COMMA);
                 getMethod(javaMethodIterator.next(), s);
+            }
+        }
+        s.append(END_ARRAY);
+    }
+
+    private void getImports(JavaSource javaSource, StringBuilder s) {
+        s.append(quote("imports"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<String> stringIterator = javaSource.getImports().iterator();
+        if (stringIterator.hasNext()) {
+            s.append(quote(stringIterator.next()));
+            while (stringIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(stringIterator.next()));
             }
         }
         s.append(END_ARRAY);
