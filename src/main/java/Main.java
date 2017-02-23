@@ -118,6 +118,22 @@ public class Main implements testing {
         s.append(END_ARRAY);
         s.append(COMMA);
 
+        s.append(quote("nestedClass"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaClass> javaClassIterator1 = javaClass.getNestedClasses().iterator();
+        if (javaClassIterator1.hasNext()) {
+            getClass(s, javaClassIterator1.next());
+            while (javaClassIterator1.hasNext()) {
+                s.append(COMMA);
+                getClass(s, javaClassIterator1.next());
+            }
+        }
+        s.append(END_ARRAY);
+        s.append(COMMA);
+
+        System.out.println(javaClass.getNestedClasses());
+
         s.append(quote("modifiers"))
                 .append(":")
                 .append(START_ARRAY);
@@ -238,11 +254,15 @@ public class Main implements testing {
                 .append(COMMA)
                 .append(quote("value"))
                 .append(":")
-                .append(javaField.getInitializationExpression())
+                .append(quote(javaField.getInitializationExpression()))
                 .append(END_OBJECT);
     }
 
     public String quote(String s) {
         return "\"" + StringEscapeUtils.escapeJson(s) + "\"";
+    }
+
+    class Dog {
+        int t;
     }
 }
