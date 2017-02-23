@@ -1,3 +1,5 @@
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.*;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -40,14 +42,33 @@ public class Main implements testing {
         javaProjectBuilder.addSourceTree(new File("src"));
         StringBuilder s = new StringBuilder();
         s.append(START_ARRAY);
-        for (JavaSource javaSource : javaProjectBuilder.getSources()) {
+        Iterator<JavaSource> javaSourceIterator = javaProjectBuilder.getSources().iterator();
+        JavaSource javaSource;
+        if (javaSourceIterator.hasNext()) {
+            javaSource = javaSourceIterator.next();
             s.append(START_OBJECT);
             getImports(javaSource, s);
             s.append(COMMA);
             getClasses(javaSource, s);
             s.append(END_OBJECT);
+            while (javaSourceIterator.hasNext()) {
+                javaSource = javaSourceIterator.next();
+                s.append(COMMA);
+                s.append(START_OBJECT);
+                getImports(javaSource, s);
+                s.append(COMMA);
+                getClasses(javaSource, s);
+                s.append(END_OBJECT);
+            }
         }
         s.append(END_ARRAY);
+
+        try {
+            JsonParser parser = new JsonParser();
+            parser.parse(s.toString());
+        } catch (JsonSyntaxException jse) {
+            System.out.println("Not a valid Json String:" + jse.getMessage());
+        }
         System.out.print(s.toString());
     }
 
