@@ -44,9 +44,14 @@ public class Main implements testing {
         s.append(START_ARRAY);
         Iterator<JavaSource> javaSourceIterator = javaProjectBuilder.getSources().iterator();
         JavaSource javaSource;
+        int iteratorCount = 0;
         if (javaSourceIterator.hasNext()) {
             javaSource = javaSourceIterator.next();
-            s.append(START_OBJECT);
+            s.append(START_OBJECT)
+                    .append(quote("id"))
+                    .append(":")
+                    .append(iteratorCount++);
+            s.append(COMMA);
             getImports(javaSource, s);
             s.append(COMMA);
             getClasses(javaSource, s);
@@ -54,7 +59,11 @@ public class Main implements testing {
             while (javaSourceIterator.hasNext()) {
                 javaSource = javaSourceIterator.next();
                 s.append(COMMA);
-                s.append(START_OBJECT);
+                s.append(START_OBJECT)
+                        .append(quote("id"))
+                        .append(":")
+                        .append(iteratorCount++);
+                s.append(COMMA);
                 getImports(javaSource, s);
                 s.append(COMMA);
                 getClasses(javaSource, s);
