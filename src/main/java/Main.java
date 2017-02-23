@@ -74,8 +74,6 @@ public class Main implements testing {
                 .append(quote(javaClass.getName()));
         s.append(COMMA);
 
-        System.out.println(javaClass.getConstructors());
-
         s.append(quote("constructors"))
                 .append(":")
                 .append(START_ARRAY);
@@ -131,8 +129,6 @@ public class Main implements testing {
         }
         s.append(END_ARRAY);
         s.append(COMMA);
-
-        System.out.println(javaClass.getNestedClasses());
 
         s.append(quote("modifiers"))
                 .append(":")
