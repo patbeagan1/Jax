@@ -1,23 +1,30 @@
 import com.thoughtworks.qdox.JavaProjectBuilder;
-import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.JavaField;
-import com.thoughtworks.qdox.model.JavaMethod;
-import com.thoughtworks.qdox.model.JavaSource;
+import com.thoughtworks.qdox.model.*;
 import org.apache.commons.lang3.StringEscapeUtils;
-import sun.plugin2.message.StartAppletAckMessage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Iterator;
 
-/**
- * Created by patrick on 2/18/17.
- */
-public class Main {
+interface testing {
+    String quote(String s);
+}
 
+public class Main implements testing {
 
-    public static final String COMMA = ",";
-    public int test = 0;
+    private static final String COMMA = ",";
+    private String END_OBJECT = "}";
+    private String START_OBJECT = "{";
+    private String END_ARRAY = "]";
+    private String START_ARRAY = "[";
+
+    private Main(int t) {
+        this.START_ARRAY = "";
+    }
+
+    private Main() {
+
+    }
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -48,18 +55,88 @@ public class Main {
         s.append(quote("classes"))
                 .append(":")
                 .append(START_ARRAY);
-        for (JavaClass javaClass : javaSource.getClasses()) {
-            s.append(START_OBJECT);
-            s.append(quote("name"))
-                    .append(":")
-                    .append(quote(javaClass.getName()));
-            s.append(COMMA);
-            getFields(javaClass, s);
-            s.append(COMMA);
-            getMethods(javaClass, s);
-            s.append(END_OBJECT);
+        Iterator<JavaClass> javaClassIterator = javaSource.getClasses().iterator();
+        if (javaClassIterator.hasNext()) {
+            getClass(s, javaClassIterator.next());
+            while (javaClassIterator.hasNext()) {
+                s.append(COMMA);
+                getClass(s, javaClassIterator.next());
+            }
         }
         s.append(END_ARRAY);
+    }
+
+    private void getClass(StringBuilder s, JavaClass javaClass) {
+        s.append(START_OBJECT);
+
+        s.append(quote("name"))
+                .append(":")
+                .append(quote(javaClass.getName()));
+        s.append(COMMA);
+
+        System.out.println(javaClass.getConstructors());
+
+        s.append(quote("constructors"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaConstructor> javaConstructorIterator = javaClass.getConstructors().iterator();
+        if (javaConstructorIterator.hasNext()) {
+            s.append(quote(javaConstructorIterator.next().getCodeBlock()));
+            while (javaConstructorIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(javaConstructorIterator.next().getCodeBlock()));
+            }
+        }
+        s.append(END_ARRAY);
+        s.append(COMMA);
+
+        s.append(quote("implements"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaType> javaTypeIterator = javaClass.getImplements().iterator();
+        if (javaTypeIterator.hasNext()) {
+            s.append(quote(javaTypeIterator.next().getFullyQualifiedName()));
+            while (javaTypeIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(javaTypeIterator.next().getFullyQualifiedName()));
+            }
+        }
+        s.append(END_ARRAY);
+        s.append(COMMA);
+
+        s.append(quote("interfaces"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<JavaClass> javaClassIterator = javaClass.getInterfaces().iterator();
+        if (javaClassIterator.hasNext()) {
+            s.append(quote(javaClassIterator.next().getFullyQualifiedName()));
+            while (javaClassIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(javaClassIterator.next().getFullyQualifiedName()));
+            }
+        }
+        s.append(END_ARRAY);
+        s.append(COMMA);
+
+        s.append(quote("modifiers"))
+                .append(":")
+                .append(START_ARRAY);
+        Iterator<String> stringIterator = javaClass.getModifiers().iterator();
+        if (stringIterator.hasNext()) {
+            s.append(quote(stringIterator.next()));
+            while (stringIterator.hasNext()) {
+                s.append(COMMA);
+                s.append(quote(stringIterator.next()));
+            }
+        }
+        s.append(END_ARRAY);
+        s.append(COMMA);
+
+        getFields(javaClass, s);
+        s.append(COMMA);
+
+        getMethods(javaClass, s);
+        s.append(END_OBJECT);
     }
 
     private void getMethods(JavaClass javaClass, StringBuilder s) {
@@ -91,7 +168,6 @@ public class Main {
         }
         s.append(END_ARRAY);
     }
-
 
     private void getMethod(JavaMethod javaMethod, StringBuilder s) {
         s.append(START_OBJECT)
@@ -137,7 +213,6 @@ public class Main {
         s.append(END_ARRAY);
     }
 
-
     private void getField(JavaField javaField, StringBuilder s) {
         s.append(START_OBJECT)
                 .append(quote("name"))
@@ -167,12 +242,7 @@ public class Main {
                 .append(END_OBJECT);
     }
 
-    private String quote(String s) {
+    public String quote(String s) {
         return "\"" + StringEscapeUtils.escapeJson(s) + "\"";
     }
-
-    private String END_OBJECT = "}";
-    private String START_OBJECT = "{";
-    private String END_ARRAY = "]";
-    private String START_ARRAY = "[";
 }
