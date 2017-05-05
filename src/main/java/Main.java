@@ -31,15 +31,19 @@ public class Main implements testing {
     public static void main(String[] args) {
         Main main = new Main();
         try {
-            main.start();
+            if (args.length != 1) {
+                System.out.println("This program takes the target directory as a parameter.");
+            } else {
+                main.start(args[0]);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    private void start() throws FileNotFoundException {
+    private void start(String targetDir) throws FileNotFoundException {
         JavaProjectBuilder javaProjectBuilder = new JavaProjectBuilder();
-        javaProjectBuilder.addSourceTree(new File("src"));
+        javaProjectBuilder.addSourceTree(new File(targetDir));
         StringBuilder s = new StringBuilder();
         s.append(START_ARRAY);
         Iterator<JavaSource> javaSourceIterator = javaProjectBuilder.getSources().iterator();
